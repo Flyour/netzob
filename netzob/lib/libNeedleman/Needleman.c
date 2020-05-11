@@ -770,6 +770,7 @@ short int getSimilarityScore(t_message * message1, t_message * message2, unsigne
     result = SEMANTIC_MATCH;
   }
   if ( (message1->mask[i - 1] == 0) && (message2->mask[j - 1] == 0) && (message1->alignment[i - 1] == message2->alignment[j - 1])) {
+    printf("%s ", message1->alignment);
     result += MATCH;
   } else {
     result += MISMATCH;

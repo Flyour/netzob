@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 #+---------------------------------------------------------------------------+
 #|          01001110 01100101 01110100 01111010 01101111 01100010            |
@@ -26,35 +26,23 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Standard library imports
+#| File contributors :                                                       |
+#|       - Georges Bossert <georges.bossert (a) supelec.fr>                  |
+#|       - Frédéric Guihéry <frederic.guihery (a) amossys.fr>                |
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Standard library imports                                                  |
 #+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
+
+#+---------------------------------------------------------------------------+
+#| Related third party imports                                               |
+#+---------------------------------------------------------------------------+
+
+#+---------------------------------------------------------------------------+
+#| Local application imports                                                 |
+#+---------------------------------------------------------------------------+
 
 
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
-
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
-
-        self.semanticTags = []
-
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+class TransformationFunction(object):
+    """Represents a function which applies to transform the data"""

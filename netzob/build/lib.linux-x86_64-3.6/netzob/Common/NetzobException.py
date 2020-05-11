@@ -29,32 +29,28 @@
 #| Standard library imports
 #+---------------------------------------------------------------------------+
 
-#+---------------------------------------------------------------------------+
-#| Local imports
-#+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
+
+class NetzobException(Exception):
+    """Class of handling Netzob specific exceptions"""
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
 
 
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class NetzobImportException(NetzobException):
+    """Raised if an error was encountered while importing data"""
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+    def __init__(self, source, message, statusCode=None, subCode=None):
+        super(NetzobImportException, self).__init__(
+            "Error while importing data from source {0}: {1}".format(source,
+                                                                     message))
+        self.message = message
+        self.source = source
+        self.statusCode = statusCode
+        self.subCode = subCode
 
-        self.semanticTags = []
-
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+    def __str__(self):
+        return self.value

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #+---------------------------------------------------------------------------+
@@ -25,36 +26,9 @@
 #|             Supélec, http://www.rennes.supelec.fr/ren/rd/cidre/           |
 #+---------------------------------------------------------------------------+
 
-#+---------------------------------------------------------------------------+
-#| Standard library imports
-#+---------------------------------------------------------------------------+
+# List subpackages to import with the current one
+# see docs.python.org/2/tutorial/modules.html
 
-#+---------------------------------------------------------------------------+
-#| Local imports
-#+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
-
-
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
-
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
-
-        self.semanticTags = []
-
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+#from Serialization import *
+#from netzob.Common.Utils.Serializer import Serializer
+from netzob.Common.Utils.Cpicklizer import Cpicklizer

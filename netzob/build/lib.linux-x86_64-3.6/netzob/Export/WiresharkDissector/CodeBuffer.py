@@ -5,7 +5,7 @@
 #|                                                                           |
 #|               Netzob : Inferring communication protocols                  |
 #+---------------------------------------------------------------------------+
-#| Copyright (C) 2011-2017 Georges Bossert and Frédéric Guihéry              |
+#| Copyright (C) 2012 AMOSSYS                                                |
 #| This program is free software: you can redistribute it and/or modify      |
 #| it under the terms of the GNU General Public License as published by      |
 #| the Free Software Foundation, either version 3 of the License, or         |
@@ -26,35 +26,72 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Standard library imports
+#| Standard library imports                                                  |
 #+---------------------------------------------------------------------------+
-
-#+---------------------------------------------------------------------------+
-#| Local imports
-#+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
+from io import StringIO
 
 
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class CodeBuffer(StringIO):
+    """
+    StringIO class with indentation capabilities
+    Used to write indent-based blocks of code (Python, LUA...)
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+    Use like this:
+    > buffer = CodeBuffer()
+    > buffer << "rabbits eats"
+    > with buffer.new_block("carrots, but also"):
+    >   buffer << "hay,"
+    >   buffer << "vegetables,"
+    >   buffer << "and grass."
+    > print buffer
+    < rabbits eats
+    < carrots, but also
+    <   hay,
+    <   vegetables,
+    <   and grass.
+    """
+    INDENT_SIZE = 2
 
-        self.semanticTags = []
+    def __init__(self, *args, **kwargs):
+        StringIO.__init__(self, *args, **kwargs)
+        self._stack = [self.new_block()]
 
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
+    def __lshift__(self, elm):
+        self._stack[-1].write(elm)
+        return self
 
-        self.uid = symbolID
-        self.length = len(self.alignment)
+    def enter(self, elm):
+        self._stack.append(elm)
+
+    def exit(self):
+        self._stack.pop()
+
+    def write(self, s):
+        indent_s = ' ' * ((len(self._stack) - 1) * self.INDENT_SIZE) + s + '\n'
+        StringIO.write(self, indent_s)
+
+    def new_block(self, data=None):
+        cb = CodeBlock(self)
+        if data is not None:
+            self << data
+        return cb
+
+
+class LUACodeBuffer(CodeBuffer):
+    def exit(self):
+        self << "end"
+        CodeBuffer.exit(self)
+
+
+class CodeBlock(object):
+    def __init__(self, buf):
+        self._buf = buf
+
+    def __enter__(self):
+        return self._buf.enter(self)
+
+    def __exit__(self, exception, data, tb):
+        self._buf.exit()
+
+    def write(self, data):
+        self._buf.write(data)

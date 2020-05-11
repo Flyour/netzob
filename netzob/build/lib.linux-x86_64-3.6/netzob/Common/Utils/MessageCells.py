@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 #+---------------------------------------------------------------------------+
 #|          01001110 01100101 01110100 01111010 01101111 01100010            |
@@ -26,35 +26,56 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Standard library imports
+#| File contributors :                                                       |
+#|       - Georges Bossert <gbossert (a) miskin.fr>                          |
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Standard library imports                                                  |
+#+---------------------------------------------------------------------------+
+from collections import OrderedDict
+
+#+---------------------------------------------------------------------------+
+#| Related third party imports                                               |
+#+---------------------------------------------------------------------------+
+
+#+---------------------------------------------------------------------------+
+#| Local application imports                                                 |
 #+---------------------------------------------------------------------------+
 from netzob.Common.Utils.Decorators import NetzobLogger
 
 
 @NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class MessageCells(OrderedDict):
+    """
+    This data structure overwrites the notion of OrderedDict to support additionnal attributes
+    such as 'headers'. This data structure has been created for the `AbstractField.getMessageCells` method
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+    >>> from netzob.all import *
+    >>> m = MessageCells()
+    >>> m[1] = "a"
+    >>> m[2] = "b"
+    >>> m[1] = m[2]
+    >>> list(m.items())
+    [(1, 'b'), (2, 'b')]
+    >>> m.fields = [Field(name="f1"), Field(name="f2")]
+    >>> [f.name for f in m.fields]
+    ['f1', 'f2']
 
-        self.semanticTags = []
+    """
 
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
+    def __init__(self):
+        super().__init__()
+        self.fields = []
 
-        self.uid = symbolID
-        self.length = len(self.alignment)
+    @property
+    def fields(self):
+        """Fields that participate in the message cells columns"""
+        return self.__fields
+
+    @fields.setter
+    def fields(self, fields):
+        self.__fields = []
+        for f in fields:
+            self.__fields.append(f)
+            

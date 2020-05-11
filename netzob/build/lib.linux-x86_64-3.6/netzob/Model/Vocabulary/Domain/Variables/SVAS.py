@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 #+---------------------------------------------------------------------------+
 #|          01001110 01100101 01110100 01111010 01101111 01100010            |
@@ -26,35 +26,39 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Standard library imports
+#| File contributors :                                                       |
+#|       - Georges Bossert <georges.bossert (a) supelec.fr>                  |
+#|       - Frédéric Guihéry <frederic.guihery (a) amossys.fr>                |
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Standard library imports                                                  |
+#+---------------------------------------------------------------------------+
+
+#+---------------------------------------------------------------------------+
+#| Related third party imports                                               |
+#+---------------------------------------------------------------------------+
+
+#+---------------------------------------------------------------------------+
+#| Local application imports                                                 |
 #+---------------------------------------------------------------------------+
 from netzob.Common.Utils.Decorators import NetzobLogger
+from netzob.Common.Utils.Decorators import typeCheck
 
 
 @NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class SVAS(object):
+    """Represents a State Variable Assignment Strategy
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+    The SVAS of a variable defines how its value is used while abstracting and specializing.
+    The SVAS impacts the memorization strategy.    
+    
+    """
 
-        self.semanticTags = []
+    CONSTANT = "Constant SVAS"
+    EPHEMERAL = "Ephemeral SVAS"
+    VOLATILE = "Volatile SVAS"
+    PERSISTENT = "Persistent SVAS"
 
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+    def __init__(self):
+        pass

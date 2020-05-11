@@ -28,33 +28,69 @@
 #+---------------------------------------------------------------------------+
 #| Standard library imports
 #+---------------------------------------------------------------------------+
+import code
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Related third party imports
 #+---------------------------------------------------------------------------+
+
+#+---------------------------------------------------------------------------+
+#| Local application imports
+#+---------------------------------------------------------------------------+
+from netzob import release
 from netzob.Common.Utils.Decorators import NetzobLogger
 
 
+class NetzobInteractiveSessionController(object):
+    """Execute Netzob in an Interactive Session"""
+
+    DEFAULT_INTERPRETOR = "python -i"
+
+    def __init__(self):
+        self.console = code.InteractiveConsole()
+        self.interpretor = NetzobInteractiveSessionController.DEFAULT_INTERPRETOR
+
+    def start(self):
+        if self.interpretor == NetzobInteractiveSessionController.DEFAULT_INTERPRETOR:
+            self.console.runsource("from netzob.all import *")
+            self.console.interact(banner=self.getBanner())
+
+    def getBanner(self):
+        """getBanner:
+        Computes and returns a string which includes the
+        banner to display on the interpretor startup.
+        @return L{str}"""
+        return """
++----------------------------------------------------+
+| {0} {1} - {2}
++----------------------------------------------------+
+| Copyright:\t print(release.copyright)
+| Contributors:\t print(release.contributors)
+| License:\t print(release.license)
++----------------------------------------------------+
+| Reverse Deeper with Netzob ({3})
++----------------------------------------------------+
+""".format(release.appname, release.version, release.versionName, release.url)
+
+
+class NetzobIPythonShellController(NetzobInteractiveSessionController):
+    """Execute Netzob in a IPython embedded shell"""
+
+    def __init__(self):
+        import IPython
+        self.shell = IPython.terminal.embed.InteractiveShellEmbed()
+
+    def start(self):
+        import netzob.all
+        self.shell(header=self.getBanner(), module=netzob.all)
+
+
 @NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
-
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
-
-        self.semanticTags = []
-
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+class NetzobSessionControllerFactory(object):
+    def __call__(self):
+        try:
+            return NetzobIPythonShellController()
+        except Exception as e:
+            self._logger.warning(
+                "Cannot initialize IPython shell: {}".format(e))
+        return NetzobInteractiveSessionController()

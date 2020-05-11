@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #+---------------------------------------------------------------------------+
@@ -25,36 +26,14 @@
 #|             Supélec, http://www.rennes.supelec.fr/ren/rd/cidre/           |
 #+---------------------------------------------------------------------------+
 
-#+---------------------------------------------------------------------------+
-#| Standard library imports
-#+---------------------------------------------------------------------------+
-
-#+---------------------------------------------------------------------------+
-#| Local imports
-#+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
-
-
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
-
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
-
-        self.semanticTags = []
-
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
-
-        self.uid = symbolID
-        self.length = len(self.alignment)
+# List subpackages to import with the current one
+# see docs.python.org/2/tutorial/modules.html
+from netzob.Model.Vocabulary.Types.Raw import Raw
+from netzob.Model.Vocabulary.Types.ASCII import ASCII
+from netzob.Model.Vocabulary.Types.Integer import Integer
+from netzob.Model.Vocabulary.Types.BitArray import BitArray
+from netzob.Model.Vocabulary.Types.HexaString import HexaString
+from netzob.Model.Vocabulary.Types.TypeConverter import TypeConverter
+from netzob.Model.Vocabulary.Types.AbstractType import AbstractType
+from netzob.Model.Vocabulary.Types.IPv4 import IPv4
+from netzob.Model.Vocabulary.Types.Timestamp import Timestamp

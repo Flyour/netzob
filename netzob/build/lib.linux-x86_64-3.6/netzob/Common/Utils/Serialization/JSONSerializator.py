@@ -30,31 +30,50 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Related third party imports
 #+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
+import inspect
+
+#+---------------------------------------------------------------------------+
+#| Local application imports
+#+---------------------------------------------------------------------------+
 
 
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class JSONSerializator(object):
+    @staticmethod
+    def serialize(obj):
+        """Serialize the specified object under a specific
+        JSON format.
+        It inspects the specified object to search for attributes to
+        serialize.
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+        >>> from netzob.all import *
+        >>> msg = RawMessage("hello")
+        >>> print(JSONSerializator.serialize(msg))
 
-        self.semanticTags = []
+        It's not possible to serialize a None object
 
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
+        >>> JSONSerializator.serialize(None)
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot serialize a None object
+    
+        :parameter obj: the object to serialize
+        :type obj: :class:`object`
+        :return: the object serialized in JSON
+        :rtype: :class:`str`
+        """
 
-        self.uid = symbolID
-        self.length = len(self.alignment)
+        if obj is None:
+            raise TypeError("Cannot serialize a None object")
+
+        typeObj = type(obj)
+        props = []
+        for entry in list(typeObj.__dict__.values()):
+            if inspect.isdatadescriptor(entry):
+                props.append(entry)
+
+        for prop in props:
+            print(prop.fget.__name__, prop.fget)
+
+        return "TEST"

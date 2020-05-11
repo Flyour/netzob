@@ -30,31 +30,48 @@
 #+---------------------------------------------------------------------------+
 
 #+---------------------------------------------------------------------------+
-#| Local imports
+#| Related third party imports
 #+---------------------------------------------------------------------------+
-from netzob.Common.Utils.Decorators import NetzobLogger
+
+#+---------------------------------------------------------------------------+
+#| Local application imports
+#+---------------------------------------------------------------------------+
+from netzob.Common.Utils.Decorators import typeCheck
+from netzob.Model.Vocabulary.Messages.AbstractMessage import AbstractMessage
 
 
-@NetzobLogger
-class WrapperMessage(object):
-    """Definition of a wrapped message ready to be sent to any C extension"""
+class RawMessage(AbstractMessage):
+    """Represents a raw Message which is a single message with some content and very few meta-data.
 
-    def __init__(self, message, symbolID, length=0):
-        if(length > 0):
-            rawData  = message.data[:length]
-        else:
-            rawData = message.data
-        self.alignment = rawData
+    >>> msg = RawMessage(b"That's a simple message")
+    >>> print(msg.data)
+    b"That's a simple message"
 
-        self.semanticTags = []
+    >>> msg = RawMessage(b"hello everyone", source="server", destination="client")
+    >>> print(msg.source)
+    server
+    >>> print(msg.destination)
+    client
+    >>> print(msg.metadata)
+    OrderedDict()
+    >>> msg.metadata["metadata1"]="value"
+    >>> print(msg.metadata)
+    OrderedDict([('metadata1', 'value')])
 
-        for i in range(0, len(rawData)):
-            # SemanticTag can be "None" (that's why the str method)
-            if i * 2 in list(message.semanticTags.keys()):
-                semanticTag = str(message.semanticTags[i * 2])
-            else:
-                semanticTag = str(None)
-            self.semanticTags.append(semanticTag)
+    """
 
-        self.uid = symbolID
-        self.length = len(self.alignment)
+    def __init__(self, data=None, date=None, source=None, destination=None, messageType="Raw"):
+        """
+        :parameter data: the content of the message
+        :type data: a :class:`object`
+        """
+        super(RawMessage, self).__init__(
+            data=data, date=date, source=source, destination=destination, messageType = messageType)
+
+    def priority(self):
+        """Return the value that will be used to represent the current message when sorted
+        with the others.
+
+        :type: int
+        """
+        return int(self.date * 1000)
